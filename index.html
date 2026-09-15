@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TaskFlow</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f5f8;color:#172033}
+.app{max-width:1100px;margin:auto;padding:28px 18px}.top{display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:24px;font-weight:800}.brand span{font-size:10px;background:#172033;color:white;padding:4px 7px;border-radius:6px}
+.hero{margin:25px 0;background:#172033;color:white;border-radius:22px;padding:36px}.hero h1{font-size:40px;margin:0 0 10px}.hero p{color:#bdc8d7}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.stat,.panel{background:white;border:1px solid #e3e8ef;border-radius:15px;padding:18px}.stat b{font-size:26px;display:block;margin-top:7px}.stat span{font-size:11px;color:#7c899b}
+.panel{margin-top:12px}.row{display:grid;grid-template-columns:1fr 150px 120px 110px;gap:8px}
+input,select,button{font:inherit;border-radius:9px;padding:11px;border:1px solid #dfe5ec}button{cursor:pointer}.add{background:#172033;color:white;border:0;font-weight:bold}
+.tools{display:flex;gap:8px;margin:16px 0}.tools input{flex:1}.task{display:flex;align-items:center;gap:10px;border:1px solid #e6eaf0;border-radius:12px;padding:13px;margin:8px 0}
+.task .copy{flex:1}.task h3{margin:0 0 6px;font-size:14px}.task small{background:#eef2f6;padding:4px 7px;border-radius:9px;color:#69778a}.done{opacity:.55}.done h3{text-decoration:line-through}
+.icon{border:0;background:none;padding:5px}.empty{text-align:center;padding:30px;color:#8390a1}.note{font-size:11px;color:#8793a3;text-align:center;margin-top:18px}
+@media(max-width:700px){.stats{grid-template-columns:1fr 1fr}.row{grid-template-columns:1fr}.hero h1{font-size:31px}.tools{flex-direction:column}}
+</style>
+</head>
+<body><div class="app">
+<div class="top"><div class="brand">TaskFlow <span>PORTFOLIO</span></div><button onclick="toggleTheme()">Dark / Light</button></div>
+<section class="hero"><h1>Organize. Focus. Finish.</h1><p>A responsive productivity dashboard built as a front-end portfolio project.</p></section>
+<section class="stats">
+<div class="stat"><span>TOTAL TASKS</span><b id="total">0</b></div>
+<div class="stat"><span>COMPLETED</span><b id="completed">0</b></div>
+<div class="stat"><span>IN PROGRESS</span><b id="active">0</b></div>
+<div class="stat"><span>COMPLETION</span><b id="rate">0%</b></div>
+</section>
+<section class="panel">
+<h2>My Tasks</h2>
+<div class="row">
+<input id="title" placeholder="Write a new task...">
+<select id="category"><option>Development</option><option>Study</option><option>Career</option><option>Personal</option></select>
+<select id="priority"><option>Low</option><option selected>Medium</option><option>High</option></select>
+<button class="add" onclick="addTask()">+ Add Task</button>
+</div>
+<div class="tools"><input id="search" oninput="render()" placeholder="Search tasks..."><select id="filter" onchange="render()"><option>All</option><option>Active</option><option>Completed</option></select></div>
+<div id="tasks"></div>
+</section>
+<div class="note">TaskFlow • HTML + CSS + JavaScript • Your tasks are saved automatically in this browser</div>
+</div>
+<script>
+const KEY="taskflow-easy-v1";
+let tasks=JSON.parse(localStorage.getItem(KEY)||"null")||[
+{id:1,title:"Finish portfolio project",category:"Development",priority:"High",done:false},
+{id:2,title:"Practice JavaScript",category:"Study",priority:"Medium",done:true},
+{id:3,title:"Prepare CV",category:"Career",priority:"High",done:false}
+];
+function save(){localStorage.setItem(KEY,JSON.stringify(tasks));render()}
+function addTask(){const e=document.getElementById("title");if(!e.value.trim())return;tasks.unshift({id:Date.now(),title:e.value.trim(),category:category.value,priority:priority.value,done:false});e.value="";save()}
+function toggle(id){tasks=tasks.map(t=>t.id===id?{...t,done:!t.done}:t);save()}
+function removeTask(id){tasks=tasks.filter(t=>t.id!==id);save()}
+function render(){
+ const q=search.value.toLowerCase(),f=filter.value;
+ let list=tasks.filter(t=>t.title.toLowerCase().includes(q)&&(f==="All"||(f==="Completed"&&t.done)||(f==="Active"&&!t.done)));
+ total.textContent=tasks.length;let c=tasks.filter(t=>t.done).length;completed.textContent=c;active.textContent=tasks.length-c;rate.textContent=(tasks.length?Math.round(c/tasks.length*100):0)+"%";
+ document.getElementById("tasks").innerHTML=list.length?list.map(t=>`<div class="task ${t.done?"done":""}"><button class="icon" onclick="toggle(${t.id})">${t.done?"✅":"⭕"}</button><div class="copy"><h3>${escapeHtml(t.title)}</h3><small>${t.category}</small> <small>${t.priority}</small></div><button class="icon" onclick="removeTask(${t.id})">🗑️</button></div>`).join(""):'<div class="empty">No tasks found.</div>';
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function toggleTheme(){document.body.style.background=document.body.style.background==="rgb(12, 17, 27)"?"#f3f5f8":"#0c111b"}
+document.getElementById("title").addEventListener("keydown",e=>{if(e.key==="Enter")addTask()});render();
+</script></body></html>
